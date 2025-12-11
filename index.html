@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Красивый Чат</title>
+    <title>Hoodwink Messenger</title>
     <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
     <link rel="stylesheet" href="styles.css">
 </head>
@@ -18,10 +18,11 @@
                     </svg>
                 </div>
                 <h1>Добро пожаловать!</h1>
-                <p>Войдите в чат-комнату и начните общение</p>
+                <p>Войдите или зарегистрируйтесь, чтобы начать общение</p>
             </div>
 
-            <form id="loginForm" class="login-form">
+            <!-- Форма входа (по умолчанию) -->
+            <form id="loginForm" class="auth-form">
                 <div class="input-group">
                     <label>
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -30,7 +31,60 @@
                         </svg>
                         Имя пользователя
                     </label>
-                    <input type="text" id="usernameInput" placeholder="Введите ваше имя" maxlength="20" required>
+                    <input type="text" id="loginUsername" placeholder="Введите ваше имя" maxlength="20" required>
+                </div>
+
+                <div class="input-group">
+                    <label>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                        </svg>
+                        Пароль
+                    </label>
+                    <input type="password" id="loginPassword" placeholder="Введите пароль" required>
+                </div>
+
+                <button type="submit" id="loginBtn" class="auth-btn">Войти</button>
+                
+                <div class="auth-switch">
+                    <p>Нет аккаунта? <button type="button" id="switchToRegister" class="switch-btn">Зарегистрироваться</button></p>
+                </div>
+            </form>
+
+            <!-- Форма регистрации (скрыта по умолчанию) -->
+            <form id="registerForm" class="auth-form hidden">
+                <div class="input-group">
+                    <label>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                            <circle cx="12" cy="7" r="4"/>
+                        </svg>
+                        Имя пользователя
+                    </label>
+                    <input type="text" id="registerUsername" placeholder="Введите имя пользователя" maxlength="20" required>
+                </div>
+
+                <div class="input-group">
+                    <label>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                        </svg>
+                        Пароль
+                    </label>
+                    <input type="password" id="registerPassword" placeholder="Введите пароль (минимум 6 символов)" required>
+                </div>
+
+                <div class="input-group">
+                    <label>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                        </svg>
+                        Подтвердите пароль
+                    </label>
+                    <input type="password" id="registerConfirmPassword" placeholder="Повторите пароль" required>
                 </div>
 
                 <div class="avatar-group">
@@ -45,13 +99,19 @@
                     </div>
                 </div>
 
-                <button type="submit" id="loginBtn" disabled>Войти в чат</button>
+                <button type="submit" id="registerBtn" class="auth-btn" disabled>Зарегистрироваться</button>
+                
+                <div class="auth-switch">
+                    <p>Уже есть аккаунт? <button type="button" id="switchToLogin" class="switch-btn">Войти</button></p>
+                </div>
             </form>
 
             <div class="features">
                 <p>✨ Общение в реальном времени</p>
                 <p>👥 Список пользователей онлайн</p>
                 <p>💬 Уведомления о печати</p>
+                <p>🔒 Приватные сообщения</p>
+                <p>😀 Обмен стикерами</p>
             </div>
         </div>
     </div>
@@ -83,11 +143,20 @@
                         </svg>
                     </button>
                     <div class="chat-info">
-                        <h1>Чат-комната</h1>
+                        <h1 id="chatTitle">Общий чат</h1>
                         <p id="onlineCount">0 пользователей онлайн</p>
                     </div>
+                    <div id="chatTypeIndicator" class="chat-type-indicator hidden">Общий</div>
                 </div>
                 <div class="header-right">
+                    <button id="toggleChatsBtn" class="icon-btn" title="Мои чаты">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                            <path d="M8 10h.01"/>
+                            <path d="M12 10h.01"/>
+                            <path d="M16 10h.01"/>
+                        </svg>
+                    </button>
                     <div class="user-info">
                         <div id="currentUserAvatar" class="user-avatar"></div>
                         <span id="currentUsername"></span>
@@ -115,7 +184,7 @@
             <form id="messageForm" class="message-form">
                 <div class="input-container">
                     <input type="text" id="messageInput" placeholder="Напишите сообщение..." maxlength="500">
-                    <button type="button" id="emojiBtn" class="emoji-btn">
+                    <button type="button" id="emojiBtn" class="emoji-btn" title="Стикеры">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <circle cx="12" cy="12" r="10"/>
                             <path d="M8 14s1.5 2 4 2 4-2 4-2"/>
@@ -132,8 +201,56 @@
                 </button>
             </form>
         </div>
+
+        <!-- Панель стикеров -->
+        <div id="stickersPanel" class="stickers-panel hidden">
+            <div class="stickers-header">
+                <div class="stickers-categories">
+                    <button class="sticker-category active" data-category="emotions">😀</button>
+                    <button class="sticker-category" data-category="animals">🐶</button>
+                    <button class="sticker-category" data-category="food">🍕</button>
+                    <button class="sticker-category" data-category="objects">📱</button>
+                    <button class="sticker-category" data-category="signs">❤️</button>
+                </div>
+            </div>
+            <div id="stickersContainer" class="stickers-container">
+                <!-- Стикеры будут загружены через JS -->
+            </div>
+        </div>
+
+        <!-- Панель чатов -->
+        <div id="chatsPanel" class="chats-panel hidden">
+            <div class="chats-header">
+                <h3>Мои чаты</h3>
+                <button id="closeChatsBtn" class="icon-btn">×</button>
+            </div>
+            <div id="chatsList" class="chats-list">
+                <!-- Список чатов будет динамически -->
+            </div>
+        </div>
+
+        <!-- Модальное окно профиля -->
+        <div id="profileModal" class="modal hidden">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Профиль пользователя</h3>
+                    <button id="closeProfile" class="icon-btn">×</button>
+                </div>
+                <div class="profile-info">
+                    <div id="profileAvatar" class="user-avatar large"></div>
+                    <h2 id="profileUsername"></h2>
+                    <div class="profile-status">
+                        <span id="profileStatus" class="status-online"></span>
+                    </div>
+                    <p id="profileJoined"></p>
+                </div>
+                <div class="modal-actions">
+                    <button id="startPrivateChatBtn" class="btn-primary">Написать сообщение</button>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <script src="script.js"></script>
+    <script type="module" src="script.js"></script>
 </body>
 </html>
